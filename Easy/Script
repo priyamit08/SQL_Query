@@ -1,0 +1,70 @@
+/*1. The HR team wants to understand the average satisfaction score of employees across different departments. Can you provide the average satisfaction score rounded down to the nearest whole number for each department?
+Tables
+employee_satisfaction(employee_id, department_id, job_category_id, satisfaction_score, evaluation_date)*/
+SELECT
+department_id,
+FLOOR(AVG(satisfaction_score)) AS avg_score,
+FROM employee_satisfaction
+GROUP BY 1
+
+
+/*2. In addition to the previous analysis, the HR team is interested in knowing the average satisfaction score rounded up to the nearest whole number for each job category. Can you calculate this using the same data?
+Tables
+employee_satisfaction(employee_id, department_id, job_category_id, satisfaction_score, evaluation_date)*/
+SELECT
+job_category_id,
+CEIL(AVG(satisfaction_score)) AS avg_score,
+FROM employee_satisfaction
+GROUP BY 1
+
+
+/*3. The HR team wants a consolidated report that includes both the rounded down and rounded up average satisfaction scores for each department and job category. Please rename the columns appropriately to 'Floor_Avg_Satisfaction' and 'Ceil_Avg_Satisfaction'.
+Tables
+employee_satisfaction(employee_id, department_id, job_category_id, satisfaction_score, evaluation_date)*/
+
+SELECT
+department_id,job_category_id
+FLOOR(AVG(satisfaction_score)) AS avg_score_down,
+CEIL(AVG(satisfaction_score)) AS avg_score_up
+FROM employee_satisfaction
+GROUP BY 1,2
+
+
+
+
+/*https://www.interviewmaster.ai/chat/da4aabfb-e9b0-4d66-a0a8-2e773203b446
+
+1. Identify the first 3 subscription tiers in alphabetical order. Don't forget to remove duplicate values. 
+This query will help us understand what values are in the tier_name column.
+Tables
+fct_subscriptions(subscription_id, customer_id, tier_name, start_date, end_date)*/
+
+SELECT DISTINCT tier_name
+FROM fct_subscriptions
+ORDER BY tier_name
+LIMIT 3
+
+/* 2.Determine how many customers canceled their subscriptions in August 2024 for tiers labeled ''Basic'' or 
+''Premium''. This query is used to evaluate cancellation trends for these specific subscription levels.
+Tables
+fct_subscriptions(subscription_id, customer_id, tier_name, start_date, end_date)*/
+
+SELECT 
+COUNT(DISTINCT customer_id) AS total_customer
+FROM fct_subscriptions
+WHERE end_date BETWEEN '2024-08-01' AND '2024-08-30'
+AND (tier_name = 'Basic' OR tier_name = 'Premium')
+
+/* 3.Find the subscription tier with the highest number of cancellations during Quarter 3 2024 (July 2024 through September 2024).
+This query will guide retention strategies by identifying the tier with the most significant dropout case.
+Tables
+fct_subscriptions(subscription_id, customer_id, tier_name, start_date, end_date)*/
+
+SELECT 
+tier_name,
+COUNT(customer_id) AS total_cust
+FROM fct_subscriptions
+WHERE end_date BETWEEN '2024-07-01' AND '2024-09-30'
+GROUP BY tier_name
+ORDER BY total_cust DESC
+LIMIT 1
