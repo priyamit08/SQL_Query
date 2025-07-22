@@ -1,6 +1,7 @@
 /*1. The HR team wants to understand the average satisfaction score of employees across different departments. Can you provide the average satisfaction score rounded down to the nearest whole number for each department?
 Tables
 employee_satisfaction(employee_id, department_id, job_category_id, satisfaction_score, evaluation_date)*/
+
 SELECT
 department_id,
 FLOOR(AVG(satisfaction_score)) AS avg_score,
@@ -68,3 +69,481 @@ WHERE end_date BETWEEN '2024-07-01' AND '2024-09-30'
 GROUP BY tier_name
 ORDER BY total_cust DESC
 LIMIT 1
+
+
+
+
+/* https://www.interviewmaster.ai/chat/45454386-6646-4051-bf7f-d439a6a09a83
+
+1. What is the percentage of orders delivered on time in January 2024? 
+Consider an order on time if its actual_delivery_time is less than or equal to its expected_delivery_time. 
+This will help us assess overall tracking precision.
+Tables
+fct_orders(order_id, delivery_partner_id, delivery_partner_name, expected_delivery_time, actual_delivery_time, order_date) */
+
+SELECT ROUND((ontime/Total_order *100),2) AS on_time_delivery
+FROM
+(
+SELECT COUNT(order_id) Total_order,
+COUNT(CASE WHEN actual_delivery_time<=expected_delivery_time THEN 1 END) AS ontime
+FROM fct_orders
+WHERE TO_CHAR(actual_delivery_time,'YYYY-MM') = '2024-01'
+)
+
+/* 2.List the top 5 delivery partners in January 2024 ranked by the highest percentage of on-time deliveries. 
+Use the delivery_partner_name field from the records. This will help us identify which partners perform best.
+Tables
+fct_orders(order_id, delivery_partner_id, delivery_partner_name, expected_delivery_time, actual_delivery_time, order_date)*/
+SELECT 
+	delivery_partner_name,
+	ROUND((ontime_delivery/total_order *100),2) AS on_time_percent	
+FROM 
+(
+	SELECT  delivery_partner_name,
+		    COUNT(order_id) AS total_order,
+		    COUNT(CASE WHEN actual_delivery_time<= expected_delivery_time THEN 1 END) AS ontime_delivery
+	FROM fct_orders
+	WHERE TO_CHAR(actual_delivery_time,'YYYY-MM') = '2024-01'
+	GROUP BY delivery_partner_name
+) t
+ORDER BY on_time_percent DESC
+LIMIT 5
+
+/* 3. Identify the delivery partner(s) in January 2024 whose on-time delivery percentage is below 50%. 
+Return their partner names in uppercase. We need to work with these delivery partners to improve their on-time delivery rates.
+Tables
+fct_orders(order_id, delivery_partner_id, delivery_partner_name, expected_delivery_time, actual_delivery_time, order_date)*/
+
+SELECT 
+	UPPER(delivery_partner_name),
+	ROUND((ontime_delivery/total_order *100),2) AS on_time_percent	
+FROM 
+(
+	SELECT  delivery_partner_name,
+		    COUNT(order_id) AS total_order,
+		    COUNT(CASE WHEN actual_delivery_time<= expected_delivery_time THEN 1 END) AS ontime_delivery
+	FROM fct_orders
+	WHERE TO_CHAR(actual_delivery_time,'YYYY-MM') = '2024-01'
+	GROUP BY delivery_partner_name
+) t
+WHERE ROUND((ontime_delivery/total_order *100),2) < 50
+ORDER BY on_time_percent DESC
+LIMIT 5
+
+
+
+
+/* https://www.interviewmaster.ai/chat/dfb05f84-b2f0-4a8b-be39-7ffb5f5368a5
+
+1. How many search queries had either a link click or more than 30 second dwell time in October 2024?
+Tables
+search_queries(query_id, user_id, clicks, dwell_time_seconds, query_date)
+users(user_id, user_name, signup_date) */
+
+SELECT
+COUNT(clicks = 1 OR dwell_time_seconds > 30 THEN 1 END)
+FROM search_queries
+WHERE query_date BETWEEN  '2024-10-01' AND '2024-10-31'
+
+SELECT COUNT(*) AS queries_with_engagement
+FROM search_queries
+WHERE query_date BETWEEN '2024-10-01' AND '2024-10-31'
+  AND (clicks > 0 OR dwell_time_seconds > 30);
+
+
+/* 2. Can you find out how many search queries in October 2024 were made by users who clicked on a link 
+and spent more than 30 seconds on the search results page?
+Tables
+search_queries(query_id, user_id, clicks, dwell_time_seconds, query_date)
+users(user_id, user_name, signup_date) */
+
+SELECT
+COUNT(*) AS qualified_searches
+FROM search_queries
+WHERE 1=1
+query_date BETWEEN  '2024-10-01' AND '2024-10-31'
+AND clicks = 1 AND dwell_time_seconds > 30
+
+/* 3. For users who signed up in the first week of October 2024 (e.g. October 1 - 7), how many search queries 
+did they make in total?
+Tables
+search_queries(query_id, user_id, clicks, dwell_time_seconds, query_date)
+users(user_id, user_name, signup_date) */
+
+
+SELECT
+COUNT(s.query_id) AS total_query
+FROM search_queries s
+INNER JOIN users u
+ON s.user_id = u.user_id
+WHERE signup_date BETWEEN  '2024-10-01' AND '2024-10-07' 
+
+
+
+/* https://www.interviewmaster.ai/chat/228de54c-c8fa-4a13-9f4f-be749cf969b4
+
+1. Can you find the average price of items listed in each category on Facebook Marketplace? We want to understand the pricing trends across different categories.
+Tables
+Listings(listing_id, category, price, city, user_id)  */
+SELECT AVG(price) AS avg_price,
+category
+FROM Listings
+GROUP BY category
+
+/* 2. Which city has the lowest average price? This will help us identify the most affordable cities for buyers.
+Tables
+Listings(listing_id, category, price, city, user_id) */
+SELECT AVG(price) AS avg_price,
+city
+FROM Listings
+GROUP BY city
+ORDER BY city 
+LIMIT 1
+
+
+
+
+/*https://www.interviewmaster.ai/question/game-library-health-for-user-retention
+
+1. How many users have no games installed in their library during the third quarter of 2024? 
+Use the dim_users table and filter for users where has_game_installed is 0 and the library_last_updated 
+date is between July and September 2024. This helps identify users that can be targeted for increased engagement.
+Tables
+dim_users(user_id, has_game_installed, library_last_updated, installed_games_count)
+fct_user_game_activity(user_id, game_id, install_date, last_played_date) */
+SELECT
+COUNT(*) AS users_with_no_games_installed
+FROM fct_user_game_activity f
+LEFT JOIN dim_users d
+ON f.user_id = d.user_id
+WHERE has_game_installed = 0
+AND library_last_updated BETWEEN '2024-07-01' AND '2024-09-30'
+
+
+
+/*2. Which 5 games had the highest number of installs during the third quarter of 2024? 
+This helps reveal the most popular games among users.
+Tables
+dim_users(user_id, has_game_installed, library_last_updated, installed_games_count)
+fct_user_game_activity(user_id, game_id, install_date, last_played_date)*/
+SELECT
+game_id,
+COUNT(*) AS total_game_installed
+FROM fct_user_game_activity f
+LEFT JOIN dim_users d
+ON f.user_id = d.user_id
+WHERE install_date BETWEEN '2024-07-01' AND '2024-09-30'
+GROUP BY game_id
+ORDER BY total_installs DESC
+LIMIT 5
+
+
+
+/* 3. How many users, whose libraries were last updated between July and September 2024, 
+have 3 or more games installed in their library?
+Tables
+dim_users(user_id, has_game_installed, library_last_updated, installed_games_count)
+fct_user_game_activity(user_id, game_id, install_date, last_played_date)*/
+
+SELECT COUNT(user_id) AS total_user,
+FROM dim_users
+WHERE library_last_updated BETWEEN '2024-07-01' AND '2024-09-30'
+AND installed_games_count >= 3
+
+
+/*https://www.interviewmaster.ai/chat/78fe5fa9-510f-4cc1-b20e-ab6353a40c3c
+
+What is the average context retention score for GPT-4 responses in April 2024? 
+This will help us determine a baseline measure of GPT-4's response complexity.
+Tables
+fct_context_retention(inquiry_type, context_retention_score, response_date, model_name)*/
+
+SELECT
+AVG(context_retention_score) AS avg_context_score
+FROM fct_context_retention
+WHERE 1=1
+response_date BETWEEN '2024-04-01' AND '2024-04-30'
+AND model_name ='GPT-4'
+
+/*What is the highest context retention score recorded by GPT-4 for the 'legal' inquiry type in April 2024? 
+This will highlight the peak performance in terms of contextual processing.
+Tables
+fct_context_retention(inquiry_type, context_retention_score, response_date, model_name)*/
+
+SELECT
+MAX(context_retention_score) AS max_context_score
+FROM fct_context_retention
+WHERE 1=1
+response_date BETWEEN '2024-04-01' AND '2024-04-30'
+AND model_name ='GPT-4'
+AND inquiry_type = 'legal'
+
+
+/*What is the average context retention score for each inquiry type for GPT-4 responses in April 2024,
+rounded to two decimal places? 
+This breakdown will directly inform which inquiry domains may need enhancements in GPT-4's contextual understanding.
+Tables
+fct_context_retention(inquiry_type, context_retention_score, response_date, model_name)*/
+
+SELECT
+ROUND(AVG(context_retention_score),2) AS avg_context_score
+FROM fct_context_retention
+WHERE 1=1
+response_date BETWEEN '2024-04-01' AND '2024-04-30'
+AND model_name ='GPT-4'
+
+
+
+
+/*How many unique artists were recommended to users in April 2024? 
+This analysis will help determine the diversity of recommendations during that month.
+Tables
+fct_artist_recommendations(recommendation_id, user_id, artist_id, recommendation_date, is_new_artist)*/
+
+SELECT COUNT(DISTINCT artist_id) AS artist_count
+FROM 
+fct_artist_recommendations
+WHERE recommendation_date BETWEEN '2024-04-01' AND '2024-04-30'
+
+
+/*What is the total number of recommendations for new artists in May 2024? 
+This insight will help assess if our focus on emerging talent is working effectively.
+Tables
+fct_artist_recommendations(recommendation_id, user_id, artist_id, recommendation_date, is_new_artist)*/
+
+
+SELECT COUNT(recommendation_id) AS artist_count
+FROM 
+fct_artist_recommendations
+WHERE recommendation_date BETWEEN '2024-05-01' AND '2024-05-31'
+AND is_new_artist = TRUE
+
+
+
+/*For each month in Quarter 2 2024 (April through June 2024), how many distinct new artists 
+were recommended to users? 
+This breakdown will help identify trends in new artist recommendations over the quarter.
+Tables
+fct_artist_recommendations(recommendation_id, user_id, artist_id, recommendation_date, is_new_artist)*/
+
+SELECT 
+TO_CHAR(recommendation_date,'YYYY-MM') AS month,
+COUNT(DISTINCT CASE WHEN is_new_artist = TRUE THEN 1 END)AS new_artist_count
+FROM 
+fct_artist_recommendations
+WHERE recommendation_date BETWEEN '2024-04-01' AND '2024-06-31'
+GROUP BY TO_CHAR(recommendation_date,'YYYY-MM')
+ORDER BY month;
+
+/*Our team's goal is download conversion rate -- defined as downloads per browse event. 
+For each app category, calculate the download conversion rate in December, removing categories where 
+browsing counts are be zero.
+
+Tables
+Explore data
+dim_app(app_id, app_name, category, app_type)
+fct_app_browsing(app_id, browse_date, browse_count)
+fct_app_downloads(app_id, download_date, download_count)
+*/
+
+WITH browsing_cte AS (
+  SELECT
+    app_id,
+    SUM(browse_count) AS total_browsing_count
+  FROM fct_app_browsing
+  WHERE browse_date BETWEEN '2024-12-01' AND '2024-12-31'
+  GROUP BY app_id
+),
+download_cte AS (
+  SELECT
+    app_id,
+    SUM(download_count) AS total_download_count
+  FROM fct_app_downloads
+  WHERE download_date BETWEEN '2024-12-01' AND '2024-12-31'
+  GROUP BY app_id
+)
+
+SELECT
+  a.category,
+  COALESCE(SUM(d.total_download_count), 0) AS total_downloads,
+  SUM(b.total_browsing_count) AS total_browses,
+  ROUND(100.0 * COALESCE(SUM(d.total_download_count), 0) / SUM(b.total_browsing_count), 2) AS conversion_rate
+FROM dim_app a
+JOIN browsing_cte b ON a.app_id = b.app_id
+LEFT JOIN download_cte d ON a.app_id = d.app_id
+GROUP BY a.category
+HAVING SUM(b.total_browsing_count) > 0
+ORDER BY conversion_rate DESC;
+
+
+/*The team wants to compare conversion rates between free and premium apps across all categories. 
+Combine the conversion data for both app types to present a unified view for Q4 2024.
+
+Tables
+Explore data
+dim_app(app_id, app_name, category, app_type)
+fct_app_browsing(app_id, browse_date, browse_count)
+fct_app_downloads(app_id, download_date, download_count)*/
+
+WITH browsing_cte AS (
+  SELECT
+    app_id,
+    SUM(browse_count) AS total_browses
+  FROM fct_app_browsing
+  WHERE browse_date BETWEEN '2024-10-01' AND '2024-12-31'
+  GROUP BY app_id
+),
+download_cte AS (
+  SELECT
+    app_id,
+    SUM(download_count) AS total_downloads
+  FROM fct_app_downloads
+  WHERE download_date BETWEEN '2024-10-01' AND '2024-12-31'
+  GROUP BY app_id
+)
+
+SELECT
+  a.category,
+  a.app_type,
+  SUM(COALESCE(d.total_downloads, 0)) AS total_downloads,
+  SUM(COALESCE(b.total_browses, 0)) AS total_browses,
+  ROUND(100.0 * SUM(COALESCE(d.total_downloads, 0)) / NULLIF(SUM(COALESCE(b.total_browses, 0)), 0), 2) AS conversion_rate_pct
+FROM dim_app a
+LEFT JOIN browsing_cte b ON a.app_id = b.app_id
+LEFT JOIN download_cte d ON a.app_id = d.app_id
+GROUP BY a.category, a.app_type
+ORDER BY a.category, conversion_rate_pct DESC;
+
+
+
+--	The marketplace team wants to identify high and low performing app categories. 
+--Provide the total downloads for the app categories for November 2024. If there were no downloads 
+--for that category, return the value as 0.
+
+SELECT
+  d.category,
+  COALESCE(SUM(f.download_count), 0) AS total_downloads
+FROM dim_app d
+LEFT JOIN fct_app_downloads f
+  ON d.app_id = f.app_id AND f.download_date BETWEEN '2024-11-01' AND '2024-11-30'
+GROUP BY d.category
+ORDER BY total_downloads DESC;
+
+
+/*Based on subscriptions that started in Quarter 3 of 2024, 
+rank the pricing tiers by their retention rate. We’d like to see both the retention rate 
+and the rank for each tier, so we can identify which pricing model keeps customers engaged the longest.
+
+Tables
+Explore data
+fct_subscriptions(subscription_id, customer_id, pricing_tier, start_date, end_date, renewal_status)*/
+/*To rank pricing tiers by their retention rate (i.e. % of subscriptions renewed), based on those that
+started in Q3 2024, you can build on the previous query and add the RANK() window function*/
+
+
+SELECT 
+  pricing_tier,
+  COUNT(*) AS total_subscription,
+  COUNT(*) FILTER(WHERE renewal_status = 'Renewed') AS renewed,
+  ROUND(100.0 * COUNT(*) FILTER(WHERE renewal_status = 'Renewed') / COUNT(*), 2) AS renewal_rate,
+  RANK() OVER(ORDER BY ROUND(100.0 * COUNT(*) FILTER(WHERE renewal_status = 'Renewed') / COUNT(*), 2) DESC) AS retention_rnk
+FROM fct_subscriptions
+WHERE start_date BETWEEN '2024-07-01' AND '2024-09-30'
+GROUP BY pricing_tier
+ORDER BY retention_rnk;
+
+
+
+/*What is the average number of times a recommended artist is streamed by users in May 2024? Similar to the previous question, only include streams on or after the date the artist was recommended to them.
+
+Tables
+Explore data
+user_streams(stream_id, user_id, artist_id, stream_date)
+artist_recommendations(recommendation_id, user_id, artist_id, recommendation_date)*/
+
+
+SELECT
+  AVG(stream_count) AS no_of_time_recommended
+  FROM(
+  SELECT 
+   a.user_id,
+   a.artist_id,
+   COUNT(*) AS stream_count
+FROM artist_recommendations a
+LEFT JOIN user_streams u
+ON a.user_id = u.user_id
+AND a.artist_id = u.artist_id
+WHERE u.stream_date BETWEEN '2024-05-01' AND '2024-05-31'
+AND u.stream_date >= a.recommendation_date
+GROUP BY 1,2)
+
+
+
+--Across users who listened to at least one recommended artist, what is the average number of distinct recommended artists they listened to? As in the previous question, only include streams that occurred on or after 
+--the date the artist was recommended to the user.
+
+SELECT
+  AVG(artist_count) AS avg_distinct_recommended_artists_per_user
+  FROM
+  (
+SELECT u.user_id,
+   COUNT(DISTINCT u.artist_id) AS artist_count
+FROM user_streams u
+  JOIN artist_recommendations a
+    ON u.user_id = a.user_id
+   AND u.artist_id = a.artist_id
+  WHERE u.stream_date >= a.recommendation_date
+  GROUP BY u.user_id)
+
+
+
+ /* What percentage of user queries in July 2024 were related to either 'technology' or 'science' domains?
+
+Tables
+Explore data
+fct_queries(query_id, user_id, query_text, query_domain, query_timestamp)
+dim_users(user_id, first_name, last_name)*/
+SELECT 
+ROUND(100 * COUNT(*) FILTER(WHERE query_domain IN('technology', 'science'))/
+  COUNT(*),2) AS tech_science_pct
+FROM fct_queries
+WHERE TO_CHAR(query_timestamp,'YYYY-MM') = '2024-07'
+
+
+
+/*Calculate the total number of queries per month in Q3 2024. Which month had the highest number of queries?
+
+Tables
+Explore data
+fct_queries(query_id, user_id, query_text, query_domain, query_timestamp)
+dim_users(user_id, first_name, last_name)*/
+
+SELECT
+   COUNT(query_id) AS query_count,
+  TO_CHAR(query_timestamp, 'YYYY-MM') AS query_month
+FROM fct_queries
+WHERE query_timestamp BETWEEN '2024-07-01' AND '2024-09-30'
+GROUP BY TO_CHAR(query_timestamp, 'YYYY-MM')
+ORDER BY query_count DESC
+
+
+/*Current Question
+3
+Identify the top 5 users with the most queries in August 2024 by their first and last name. We want to interview our most active users and this information will be used in our outreach to these users.
+
+Tables
+Explore data
+fct_queries(query_id, user_id, query_text, query_domain, query_timestamp)
+dim_users(user_id, first_name, last_name)*/
+
+ SELECT 
+   d.first_name,
+   d.last_name,
+   COUNT(f.query_id) AS query_count
+FROM fct_queries f
+JOIN dim_users d
+ON f.user_id = d.user_id
+   WHERE f.query_timestamp BETWEEN '2024-08-01' AND '2024-08-31'
+  GROUP BY 1,2
+   ORDER BY query_count DESC
+LIMIT 5
