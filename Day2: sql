@@ -1,0 +1,50 @@
+---Second highest sal
+SELECT MAX(salary) AS second_max_sal
+FROM employee < (SELECT MAX(salary) FROM employe)
+
+---User who had not purchase
+SELECT u.user_id,
+FROM user u 
+LEFT JOIN purchase p
+ON u.user_id = p.user_id
+WHERE p.user_id IS NULL
+
+--Find the DAU user for past 7 days
+SELECT activity_date,
+COUNT(DISTINCT user_id) AS dau
+FROM user_activity
+WHERE activity_date >= CURRENT_DATE - INTERVAL '6' DAY
+GROUP BY activity_date
+
+----Retrieve customer who made more than 3 order in the last 30 daya
+SELECT customer_id
+FROM ORDERS
+WHERE order_date >= CURRENT_DATE - INTERVAL '30' DAY
+GROUP BY customer_id
+HAVING COUNT(order_id) > 3
+
+SELECT
+product_id,
+SUM(price * quantity) AS revenue
+FROM sales
+GROUP BY product_id
+ORDER BY revenue DESC
+LIMIT 3
+
+
+---FIND and delete the duplicate record
+
+SELECT order_id, COUNT(*)
+FROM order
+GROUP BY order_d 
+HAVING COUNT(*) > 1
+--Deletion
+WITH CTE  AS (
+	SELECT
+		*,
+		ROW_NUMBER() OVER(PARTITION BY order_id ORDER BY order_date DESC) AS row_rank
+	FROM order
+)
+DELETE
+FROM CTE 
+WHERE row_rnk >=2
