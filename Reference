@@ -1,0 +1,1394 @@
+-- =============================================================
+-- PostgreSQL Database Creation and Table Setup Script
+-- =============================================================
+-- WARNING:
+-- This script assumes you are manually connected to the 'postgres' database
+-- and have the privileges to drop/create databases and schemas.
+-- It drops the 'salesdb' database if it exists.
+
+-- DROP AND CREATE DATABASE
+DROP DATABASE IF EXISTS salesdb;
+CREATE DATABASE salesdb;
+
+-- Connect to the new database (manual step in most PostgreSQL tools)
+
+-- Now switch to the salesdb database to execute the following
+
+-- Create schema
+DROP SCHEMA IF EXISTS sales CASCADE;
+CREATE SCHEMA sales;
+
+-- ======================================================
+-- Table: customers
+-- ======================================================
+
+CREATE TABLE sales.customers (
+    customerid INT PRIMARY KEY,
+    firstname VARCHAR(50),
+    lastname VARCHAR(50),
+    country VARCHAR(50),
+    score INT
+);
+
+INSERT INTO sales.customers VALUES
+    (1, 'Jossef', 'Goldberg', 'Germany', 350),
+    (2, 'Kevin', 'Brown', 'USA', 900),
+    (3, 'Mary', NULL, 'USA', 750),
+    (4, 'Mark', 'Schwarz', 'Germany', 500),
+    (5, 'Anna', 'Adams', 'USA', NULL);
+
+-- ======================================================
+-- Table: employees
+-- ======================================================
+
+CREATE TABLE sales.employees (
+    employeeid INT PRIMARY KEY,
+    firstname VARCHAR(50),
+    lastname VARCHAR(50),
+    department VARCHAR(50),
+    birthdate DATE,
+    gender CHAR(1),
+    salary INT,
+    managerid INT
+);
+
+INSERT INTO sales.employees VALUES
+    (1, 'Frank', 'Lee', 'Marketing', '1988-12-05', 'M', 55000, NULL),
+    (2, 'Kevin', 'Brown', 'Marketing', '1972-11-25', 'M', 65000, 1),
+    (3, 'Mary', NULL, 'Sales', '1986-01-05', 'F', 75000, 1),
+    (4, 'Michael', 'Ray', 'Sales', '1977-02-10', 'M', 90000, 2),
+    (5, 'Carol', 'Baker', 'Sales', '1982-02-11', 'F', 55000, 3);
+
+-- ======================================================
+-- Table: products
+-- ======================================================
+
+CREATE TABLE sales.products (
+    productid INT PRIMARY KEY,
+    product VARCHAR(50),
+    category VARCHAR(50),
+    price INT
+);
+
+INSERT INTO sales.products VALUES
+    (101, 'Bottle', 'Accessories', 10),
+    (102, 'Tire', 'Accessories', 15),
+    (103, 'Socks', 'Clothing', 20),
+    (104, 'Caps', 'Clothing', 25),
+    (105, 'Gloves', 'Clothing', 30);
+
+-- ======================================================
+-- Table: orders
+-- ======================================================
+
+CREATE TABLE sales.orders (
+    orderid INT PRIMARY KEY,
+    productid INT,
+    customerid INT,
+    salespersonid INT,
+    orderdate DATE,
+    shipdate DATE,
+    orderstatus VARCHAR(50),
+    shipaddress VARCHAR(255),
+    billaddress VARCHAR(255),
+    quantity INT,
+    sales INT,
+    creationtime TIMESTAMP
+);
+
+INSERT INTO sales.orders VALUES
+    (1, 101, 2, 3, '2025-01-01', '2025-01-05', 'Delivered', '9833 Mt. Dias Blv.', '1226 Shoe St.', 1, 10, '2025-01-01 12:34:56'),
+    (2, 102, 3, 3, '2025-01-05', '2025-01-10', 'Shipped', '250 Race Court', NULL, 1, 15, '2025-01-05 23:22:04'),
+    (3, 101, 1, 5, '2025-01-10', '2025-01-25', 'Delivered', '8157 W. Book', '8157 W. Book', 2, 20, '2025-01-10 18:24:08'),
+    (4, 105, 1, 3, '2025-01-20', '2025-01-25', 'Shipped', '5724 Victory Lane', '', 2, 60, '2025-01-20 05:50:33'),
+    (5, 104, 2, 5, '2025-02-01', '2025-02-05', 'Delivered', NULL, NULL, 1, 25, '2025-02-01 14:02:41'),
+    (6, 104, 3, 5, '2025-02-05', '2025-02-10', 'Delivered', '1792 Belmont Rd.', NULL, 2, 50, '2025-02-06 15:34:57'),
+    (7, 102, 1, 1, '2025-02-15', '2025-02-27', 'Delivered', '136 Balboa Court', '', 2, 30, '2025-02-16 06:22:01'),
+    (8, 101, 4, 3, '2025-02-18', '2025-02-27', 'Shipped', '2947 Vine Lane', '4311 Clay Rd', 3, 90, '2025-02-18 10:45:22'),
+    (9, 101, 2, 3, '2025-03-10', '2025-03-15', 'Shipped', '3768 Door Way', '', 2, 20, '2025-03-10 12:59:04'),
+    (10, 102, 3, 5, '2025-03-15', '2025-03-20', 'Shipped', NULL, NULL, 0, 60, '2025-03-16 23:25:15');
+
+-- ======================================================
+-- Table: orders_archive
+-- ======================================================
+
+CREATE TABLE sales.ordersarchive (
+    orderid INT,
+    productid INT,
+    customerid INT,
+    salespersonid INT,
+    orderdate DATE,
+    shipdate DATE,
+    orderstatus VARCHAR(50),
+    shipaddress VARCHAR(255),
+    billaddress VARCHAR(255),
+    quantity INT,
+    sales INT,
+    creationtime TIMESTAMP
+);
+
+INSERT INTO sales.ordersarchive VALUES
+    (1, 101, 2, 3, '2024-04-01', '2024-04-05', 'Shipped', '123 Main St', '456 Billing St', 1, 10, '2024-04-01 12:34:56'),
+    (2, 102, 3, 3, '2024-04-05', '2024-04-10', 'Shipped', '456 Elm St', '789 Billing St', 1, 15, '2024-04-05 23:22:04'),
+    (3, 101, 1, 4, '2024-04-10', '2024-04-25', 'Shipped', '789 Maple St', '789 Maple St', 2, 20, '2024-04-10 18:24:08'),
+    (4, 105, 1, 3, '2024-04-20', '2024-04-25', 'Shipped', '987 Victory Lane', '', 2, 60, '2024-04-20 05:50:33'),
+    (4, 105, 1, 3, '2024-04-20', '2024-04-25', 'Delivered', '987 Victory Lane', '', 2, 60, '2024-04-20 14:50:33'),
+    (5, 104, 2, 5, '2024-05-01', '2024-05-05', 'Shipped', '345 Oak St', '678 Pine St', 1, 25, '2024-05-01 14:02:41'),
+    (6, 104, 3, 5, '2024-05-05', '2024-05-10', 'Delivered', '543 Belmont Rd.', NULL, 2, 50, '2024-05-06 15:34:57'),
+    (6, 104, 3, 5, '2024-05-05', '2024-05-10', 'Delivered', '543 Belmont Rd.', '3768 Door Way', 2, 50, '2024-05-07 13:22:05'),
+    (6, 101, 3, 5, '2024-05-05', '2024-05-10', 'Delivered', '543 Belmont Rd.', '3768 Door Way', 2, 50, '2024-05-12 20:36:55'),
+    (7, 102, 3, 5, '2024-06-15', '2024-06-20', 'Shipped', '111 Main St', '222 Billing St', 0, 60, '2024-06-16 23:25:15');
+
+
+
+SELECT * FROM sales.ordersarchive;
+SELECT * FROM sales.customers;
+SELECT * FROM sales.orders;
+SELECT * FROM sales.products;
+SELECT * FROM sales.employees;
+
+
+SELECT cat,
+SUM(sales) AS total_sales
+FROM (
+SELECT
+sales,
+CASE 
+	WHEN sales > 50 THEN 'high'
+	WHEN sales >25 THEN 'medium'
+	ELSE 'low'
+END cat
+FROM sales.orders)t
+GROUP BY cat
+ORDER BY total_sales desc;
+
+
+
+SELECT customerid,
+	lastname,
+	score,
+	AVG(score) OVER() as avg_score,
+AVG(CASE
+	WHEN score IS NULL THEN 0
+	ELSE score
+END) OVER() AS new_avg_score
+FROM sales.customers;
+
+
+---Count how many time each cust has order with a sales greather than 30
+
+SELECT 
+	customerid,
+SUM(CASE
+	WHEN sales > 30 THEN 1
+	ELSE 0
+END) totalordersHigh30,
+COUNT(*) AS totalorder
+FROM sales.orders
+GROUP BY customerid;
+
+
+
+
+SELECT orderid, sales,
+SUM(sales) OVER()
+FROM sales.orders
+
+SELECT
+SUM(sales)
+FROM sales.orders
+
+SELECT productid,
+SUM(sales)
+FROM sales.orders
+GROUP BY productid;
+
+
+SELECT
+	productid,
+	orderid,
+	orderdate,
+	SUM(sales) OVER(PARTITION BY productid)
+FROM sales.orders;
+
+
+SELECT
+	productid,
+	orderid,
+	orderdate,
+	orderstatus,
+	sales,
+	SUM(sales) OVER() TotalSales,
+	SUM(sales) OVER(PARTITION BY productid) TotalSalesbyProduct,
+	SUM(sales) OVER(PARTITION BY productid , orderstatus) SalesbyProductOrderstatus
+FROM sales.orders;
+
+SELECT
+	productid,
+	orderid,
+	orderdate,
+	sales,
+	RANK() OVER(ORDER BY sales DESC)
+FROM sales.orders;
+
+SELECT
+	customerid,
+	SUM(sales) Total_Sales,
+	RANK() OVER(ORDER BY SUM(sales) DESC ) Rank
+FROM sales.orders
+GROUP BY customerid;
+
+
+SELECT
+	orderid,
+	orderdate,
+	customerid,
+	COUNT(*) OVER() TotalSales,
+	COUNT(*) OVER(PARTITION BY customerid) SalesbyCust
+FROM
+sales.orders;
+
+
+SELECT 
+	*,
+	COUNT(*) OVER() TotalCust,
+	COUNT(1) OVER() TotalCust1,
+	COUNT(score) OVER() Totalscore ---ignoring the null values
+FROM sales.customers;
+
+
+
+--Checking duplicate---first identify PK from data model 
+SELECT
+	orderid,
+	COUNT(*) OVER(PARTITION BY orderid) CheckPK
+FROM sales.orders;
+
+
+SELECT
+	orderid,
+	COUNT(*) OVER(PARTITION BY orderid) CheckPK
+FROM sales.ordersarchive;
+
+SELECT
+	* 
+FROM (
+SELECT
+	orderid,
+	COUNT(*) OVER(PARTITION BY orderid) CheckPK
+FROM sales.ordersarchive
+)t
+WHERE CheckPK > 1;
+
+
+--Part to Whole distribution percentage MySQL
+SELECT
+	orderid, sales,productid,
+	SUM(sales) OVER() Totalsales,
+	ROUND (CAST(sales AS Float )/ SUM(sales) OVER() *100 ,2)PercentageofTotal
+FROM sales.orders;
+
+---Postgresql
+SELECT
+    orderid,
+    sales,
+    productid,
+    SUM(sales) OVER() AS Totalsales,
+    ROUND((sales::numeric * 100) / SUM(sales) OVER(), 2) AS PercentageofTotal
+FROM sales.orders;
+
+---How to remove oldest duplicate from the table if there is any dates mentioned in table
+
+WITH cte AS 
+(
+	SELECT
+		*,
+		ROW_NUMBER() OVER(PARTITION BY orderid ORDER BY orderdate DESC) row_num
+	FROM orders
+)
+DELETE FROM cte
+WHERE row_num = 2
+
+--SHOW THE EMPLOYEE WHO HAVE HIGH SAL
+
+SELECT * 
+FROM(
+SELECT *,
+MAX(salary) OVER() HigheSal
+FROM sales.employees
+)t
+WHERE salary = HigheSal;
+
+
+
+SELECT
+    orderid,
+    sales,
+	productid,
+	orderdate,
+	ROUND(AVG(sales) OVER(),2) AvgSale,
+	AVG(sales) OVER(PARTITION BY productid) AS Totalsales,
+  AVG(COALESCE(sales , 0)) OVER(PARTITION BY productid) AS TotalsalesN 
+FROM sales.orders;
+
+SELECT
+customerid,
+lastname,
+score,
+country,
+AVG(score) OVER() Avgscore,
+AVG(score) OVER(PARTITION BY country) Avgscorre,
+AVG(COALESCE(score , 0)) OVER(PARTITION BY country) newvalye
+FROM sales.customers;
+
+---Find all the orders where sales is higher than the avg sales for all order
+
+SELECT *
+FROM
+(
+SELECT
+	orderid,
+	productid,sales,
+	ROUND(AVG(sales) OVER()) Avgsales
+FROM sales.orders)t
+WHERE sales > Avgsales;
+
+
+--Find the deviation of each sales from min abd max sales amount
+SELECT
+	orderid,
+	productid,sales,
+	MIN(sales) OVER() Minsales,
+	MAX(sales) OVER() Maxsales,
+	sales - MIN(sales) OVER() devifrommin,
+	MAX(sales) OVER()  - sales devifrommax
+FROM sales.orders;
+
+
+
+---Running/moving total (Budget, sales against the target)
+SUM(sales) OVER (ORDER BY Month ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) 
+
+---Rolling Total (Focuss on 3 month period)
+SUM(sales) OVER (ORDER BY Month ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) 
+
+
+
+---Calculate the moving avg of sales  for each product over time including only the next order ---Running total
+
+SELECT
+	orderid,
+	productid,
+	orderdate,
+	sales,
+	ROUND(AVG(sales) OVER(PARTITION BY  productid)) Avgsales1,
+	ROUND(AVG(sales) OVER(PARTITION BY  productid ORDER BY orderdate ASC ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)) MovingSales,
+	ROUND(AVG(sales) OVER(PARTITION BY  productid ORDER BY orderdate ROWS BETWEEN CURRENT ROW AND 1 FOLLOWING)) Avgrolling
+FROM sales.orders;
+
+
+-----Ranking (Integer and percentage)
+SELECT
+	orderid,
+	productid,
+	orderdate,
+	sales,
+	ROW_NUMBER() OVER(ORDER BY sales) row_num,
+	RANK() OVER(ORDER BY sales) rnk,
+	DENSE_RANK() OVER(ORDER BY sales) densernk ---it handle the ties
+FROM sales.orders;
+
+
+
+---FInd the top highest sales/cust/product for each product (Top N analysis)
+
+SELECT * FROM (
+SELECT
+	orderid,
+	productid,
+	sales,
+	ROW_NUMBER() OVER(PARTITION BY productid ORDER BY sales DESC) ranksa
+FROM sales.orders)t
+WHERE ranksa = 1
+
+
+---(Bottom N analysis)
+--Find the lowest 2 customer based on totalsales
+SELECT *
+FROM (
+SELECT  
+	customerid,
+	SUM(sales) Totalsales,
+	ROW_NUMBER() OVER(ORDER BY SUM(sales)) Rnk
+FROM sales.orders
+GROUP BY customerid )t
+WHERE Rnk <=2;
+
+
+
+---aSSIGN Unique id
+SELECT
+ROW_NUMBER() OVER(ORDER BY orderid,orderdate) UniqueID,
+*
+FROM sales.ordersarchive;
+
+
+---iDENTIFY THE DUPLICATE AND DISPLAYE THE CLEAN RESULT
+SELECT *
+FROM (
+SELECT
+ROW_NUMBER() OVER(PARTITION BY orderid ORDER BY creationtime ) UniqueID,
+*
+FROM sales.ordersarchive)t
+WHERE UniqueID = 1;
+
+
+---bad data quality issue and need to sen Data ENginer or the source for correct
+SELECT *
+FROM (
+SELECT
+ROW_NUMBER() OVER(PARTITION BY orderid ORDER BY creationtime ) UniqueID,
+*
+FROM sales.ordersarchive)t
+WHERE UniqueID > 1;
+
+
+
+
+
+
+SELECT
+orderid,
+sales,
+NTILE(2) OVER(ORDER BY sales DESC) TWOBUCKET,
+NTILE(3) OVER(ORDER BY sales DESC) THREEBUCKET,
+NTILE(4) OVER(ORDER BY sales DESC) FOURBUCKET
+FROM sales.orders;
+
+---Data Segmentation NTILE
+--segment all order in to 3 cat
+SELECT
+*,
+CASE WHEN buckets = 1 THEN 'high'
+	 WHEN buckets = 2 THEN 'Medium'
+	 WHEN buckets = 3 THEN 'low'
+END SalesSegmentation
+FROM (
+SELECT
+	orderid,
+	sales,
+	NTILE(3) OVER(ORDER BY sales DESC) buckets
+FROM
+sales.orders)t;
+
+
+---Find the product that fall within the highest 40% of the prices
+SELECT
+*,
+CONCAT(rnk * 100 , '%')distrnk
+FROM(
+SELECT
+	product,
+	price,
+	CUME_DIST() OVER(ORDER BY price DESC) rnk
+FROM sales.products)t
+WHERE rnk <= 0.4;
+
+
+SELECT
+    *,
+    CONCAT(rnk * 100 , '%') AS distrnk
+FROM (
+    SELECT
+        product,
+        price,
+        CUME_DIST() OVER (ORDER BY price DESC) AS rnk
+    FROM sales.products
+) t
+WHERE rnk >= 0.6;
+
+
+SELECT
+*,
+CONCAT(rnk * 100 , '%')distrnk
+FROM(
+SELECT
+	product,
+	price,
+	PERCENT_RANK() OVER(ORDER BY price DESC) rnk
+FROM sales.products)t
+WHERE rnk <= 0.4;
+
+---Analyze the month on month performance by finding the % change in sales between current and previous month
+--TIME SERIES ANALYSIS --The process of analyzing the data to understand pattern , trends and behavoir over time
+--Year over Year(Y-o-Y)
+--Month-On-Month(M-o-M)
+SELECT
+*,
+CurrentmonthSales - PreviousMonthSale AS monthchange,
+ROUND(
+    (CurrentmonthSales - PreviousMonthSale)::NUMERIC / NULLIF(PreviousMonthSale, 0) * 100,
+    1
+  ) || '%' AS monthchangepercent
+FROM
+(
+SELECT
+EXTRACT(MONTH FROM orderdate) Monthdate,
+SUM(sales) CurrentmonthSales,
+LAG(SUM(sales)) OVER(ORDER BY EXTRACT(MONTH FROM orderdate)) PreviousMonthSale
+--LEAD(SUM(sales)) OVER(ORDER BY EXTRACT(MONTH FROM orderdate)) NextMonthSale
+FROM sales.orders
+GROUP BY EXTRACT(MONTH FROM orderdate)
+)t;
+
+
+
+---CUstomer Retention Analysis
+---Analyze the cust loyatlty by ranking cust based on the avg no of days between orders
+SELECT
+	customerid,
+	ROUND(AVG(Daysuntillnextorder),1) AS Avgdays,
+	RANK() OVER(ORDER BY COALESCE(AVG(Daysuntillnextorder),99999)) AS RankCust
+FROM
+(
+SELECT
+	orderid,
+	customerid,
+	orderdate CurrentOrder,
+	LEAD(orderdate) OVER(PARTITION BY customerid ORDER BY orderdate) NextOrder,
+	LEAD(orderdate) OVER(PARTITION BY customerid ORDER BY orderdate) -  orderdate Daysuntillnextorder --pOSTGRESQL
+	--DATEDIFF(day,orderdate ,LEAD(orderdate) OVER(PARTITION BY customerid ORDER BY orderdate)) SQL server
+FROM
+	sales.orders) t
+GROUP BY customerid;
+
+
+---Find the highest and lowest sales of each product
+
+SELECT
+	orderid,
+	productid,
+	sales,
+	FIRST_VALUE(sales) OVER(PARTITION BY productid ORDER BY sales) lowestsale,
+	LAST_VALUE(sales) OVER(PARTITION BY productid ORDER BY sales
+	ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) highestsale,
+	FIRST_VALUE(sales) OVER(PARTITION BY productid ORDER BY sales DESC) ANOTHERWAYOGHIGHESTSALE,
+	MIN(sales) OVER(PARTITION BY productid) AS min,
+	MAX(sales) OVER(PARTITION BY productid) AS max
+	
+FROM
+sales.orders
+
+
+--FIND THE DIFF BETWEEN CURRENT SALE AND LOWER SALE
+
+SELECT
+	orderid,
+	productid,
+	sales AS CurrentSales,
+	FIRST_VALUE(sales) OVER(PARTITION BY productid ORDER BY sales) lowestsale,
+	LAST_VALUE(sales) OVER(PARTITION BY productid ORDER BY sales
+	ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) highestsale,
+	sales - FIRST_VALUE(sales) OVER(PARTITION BY productid ORDER BY sales) AS Salesdiff
+FROM
+sales.orders;
+
+---SUBQUERY----
+
+--Find the product that have higher price than avg price of all product
+SELECT
+	*
+FROM
+(
+	SELECT 
+		productid, price,
+		ROUND(AVG(price) OVER()) AVGPRICE
+	FROM sales.products
+)t
+WHERE price > AVGPRICE;
+
+
+---Rank customer based on their total amount of  sales  (FROM subquery)
+SELECT
+*,
+RANK() OVER(ORDER BY totalsales DESC ) customerrank
+FROM(
+	SELECT
+	customerid,
+	SUM(sales)  AS totalsales
+	FROM
+	sales.orders
+GROUP BY customerid
+)t;
+
+
+---Rank customer based on their total amount of  sales  (FROM subquer
+SELECT 
+*,
+RANK() OVER(ORDER BY Totalsales DESC) AS rnk
+FROM
+(
+SELECT
+customerid,
+SUM(sales) AS Totalsales
+FROM sales.orders
+GROUP BY customerid)t
+
+---Show product id, name, prices and total no of order (SCALR SUBQUERY(IT SHOULD ONLY 1 VALUE) SELECT SUBQUERY) 
+
+SELECT
+	productid,
+	product,
+	price
+FROM
+	sales.products;
+---total no of order 
+SELECT
+COUNT(*) TotalOrder
+FROM sales.orders;
+
+--Final ans
+SELECT
+	productid,
+	product,
+	price,
+	(SELECT COUNT(*) FROM sales.orders) AS TotalOrder
+FROM
+	sales.products;
+
+--JOIN SUBQUERY
+--Show all customer detail and find the total order from each customer
+
+SELECT c.*,
+o.Totalorder
+FROM sales.customers c
+LEFT JOIN (	SELECT customerid,
+			COUNT(*) AS Totalorder
+			FROM sales.orders
+			GROUP BY customerid ) o
+ON c.customerid = o.customerid;
+
+---WHERE CLAUSE SUBQUERY
+-----COMPARISON OPERATOR  --- SCALAR QUERY MEANS ONLY 1 OUTPUT in sub query
+-----LOGICAL OPERTAOR
+---Find the products that have higher price  than the average price of all product
+
+SELECT
+productid,price
+FROM sales.products
+WHERE price > (SELECT AVG(price) FROM sales.products)
+
+--or
+
+SELECT
+	productid,price,
+	(SELECT AVG(price) FROM sales.products) AS avgprice
+FROM sales.products
+WHERE price > (SELECT AVG(price) FROM sales.products)
+
+--iNCORRECT RESULT 
+SELECT
+productid,price, AVG(price) AS avgprice
+FROM sales.products
+GROUP BY productid,price;
+
+
+---IN OPERATOR---
+
+--Show the detail order  made  by the customer in Germany
+SELECT *
+FROM sales.orders 
+WHERE customerid IN (SELECT 
+						customerid
+						FROM sales.customers
+						WHERE country ='Germany');
+
+--Show the detail order  made  by the customer NOT in Germany
+
+
+--1
+SELECT *
+FROM sales.orders 
+WHERE customerid IN (SELECT 
+						customerid
+						FROM sales.customers
+						WHERE country !='Germany')
+
+--ANOTHER WAY
+
+SELECT *
+FROM sales.orders 
+WHERE customerid NOT IN (SELECT 
+						customerid
+						FROM sales.customers
+						WHERE country ='Germany');
+
+---ANY/ALL OPERATOR -----
+
+---Find female employee whose salary is greater than any male employee
+
+SELECT 
+employeeid,
+firstname,salary
+FROM sales.employees
+WHERE gender = 'F'
+AND salary > ANY (SELECT salary FROM sales.employees WHERE gender = 'M');
+
+
+---ALL---
+---Find female employee whose salary is greater than ALL male employee
+
+SELECT 
+employeeid,
+firstname,salary
+FROM sales.employees
+WHERE gender = 'F'
+AND salary > ALL (SELECT salary FROM sales.employees WHERE gender = 'M');
+
+--Show all customer detail  and find  the total order for each customer  ******* Non correlated sub query
+SELECT 
+*,
+(SELECT COUNT(*) FROM sales.orders o WHERE c.customerid = o.customerid) AS Totalordereachcust
+FROM sales.customers c
+
+--EXISTS--
+
+
+--Show the detail order  made  by the customer 	 in Germany
+
+SELECT *
+FROM sales.orders o
+WHERE EXISTS (SELECT *
+						FROM sales.customers c
+						WHERE country = 'Germany' AND
+				o.customerid = c.customerid);
+
+--Best Practice		
+SELECT *
+FROM sales.orders o
+WHERE EXISTS (SELECT 1
+						FROM sales.customers c
+						WHERE country = 'Germany' AND
+						o.customerid = c.customerid);
+
+--Best Practice	--Show the detail order  made  by the customer not	 in Germany	
+SELECT *
+FROM sales.orders o
+WHERE NOT EXISTS (SELECT 1
+						FROM sales.customers c
+						WHERE country = 'Germany' AND
+						o.customerid = c.customerid);
+
+---CTE---Standalone - Non recurssive 
+---ORDERBY is not allowed in CTE or subquery but u can used in main query
+
+--Question : Find the total sales per customer
+WITH CTE_Totalsales AS
+(
+SELECT
+	customerid,
+	SUM(sales) AS total_sales
+FROM
+sales.orders
+GROUP BY customerid
+)
+---Main Query---
+SELECT
+	c.customerid,
+	c.firstname,
+	c.lastname,
+	cte.total_sales
+FROM
+sales.customers c
+LEFT JOIN CTE_Totalsales cte
+ON c.customerid = cte.customerid
+ORDER BY total_sales;
+
+
+---Multiple Standalone CTEs---
+
+
+--Step 1 Find the total sales per customer
+WITH CTE_Totalsales AS
+(
+SELECT
+	customerid,
+	SUM(sales) AS total_sales
+FROM
+sales.orders
+GROUP BY customerid
+)
+--Step 2 : Find the last order of each customer
+,CTE_Lastorder AS
+(
+SELECT 
+	customerid,
+	MAX(orderdate) AS last_order
+FROM sales.orders
+GROUP BY customerid
+
+)
+---Main Query---
+SELECT
+	c.customerid,
+	c.firstname,
+	c.lastname,
+	cte.total_sales,
+	clo.last_order
+FROM
+sales.customers c
+LEFT JOIN CTE_Totalsales cte
+ON c.customerid = cte.customerid
+LEFT JOIN CTE_Lastorder clo
+ON clo.customerid = c.customerid
+ORDER BY total_sales;
+
+---Nested CTE----CTE inside another CTE
+
+--Step 1 Find the total sales per customer
+---To check of CTEs are working-------
+--Step 1 Find the total sales per customer
+WITH CTE_Totalsales AS
+(
+SELECT
+	customerid,
+	SUM(sales) AS total_sales
+FROM
+sales.orders
+GROUP BY customerid
+)
+--Step 2 : Find the last order of each customer
+,CTE_Lastorder AS
+(
+SELECT 
+	customerid,
+	MAX(orderdate) AS last_order
+FROM sales.orders
+GROUP BY customerid
+)
+--Step 3: Rank the customer based on their total sales per customer
+, CTE_Rank AS (
+SELECT
+customerid,
+total_sales,
+RANK() OVER (ORDER BY total_sales DESC) AS rnk
+FROM CTE_Totalsales
+)
+SELECT * FROM CTE_Rank
+---Main Query---
+/*
+SELECT
+	c.customerid,
+	c.firstname,
+	c.lastname,
+	cte.total_sales,
+	clo.last_order
+FROM
+sales.customers c
+LEFT JOIN CTE_Totalsales cte
+ON c.customerid = cte.customerid 
+LEFT JOIN CTE_Lastorder clo
+ON clo.customerid = c.customerid
+ORDER BY total_sales;*/
+
+----Final -- Query
+--Step 1 Find the total sales per customer
+WITH CTE_Totalsales AS
+(
+SELECT
+	customerid,
+	SUM(sales) AS total_sales
+FROM
+sales.orders
+GROUP BY customerid
+)
+--Step 2 : Find the last order of each customer (Standalone CTE)
+,CTE_Lastorder AS
+(
+SELECT 
+	customerid,
+	MAX(orderdate) AS last_order
+FROM sales.orders
+GROUP BY customerid
+)
+--Step 3: Rank the customer based on their total sales per customer  (Nested CTE)
+, CTE_Rank AS (
+SELECT
+customerid,
+total_sales,
+RANK() OVER (ORDER BY total_sales DESC) AS rnk
+FROM CTE_Totalsales
+)
+---Main Query---
+
+SELECT
+	c.customerid,
+	c.firstname,
+	c.lastname,
+	cte.total_sales,
+	clo.last_order,
+	cr.rnk
+FROM
+sales.customers c
+LEFT JOIN CTE_Totalsales cte
+ON c.customerid = cte.customerid 
+LEFT JOIN CTE_Lastorder clo
+ON clo.customerid = c.customerid
+LEFT JOIN CTE_Rank cr
+ON cr.customerid = c.customerid
+ORDER BY total_sales;
+
+--Continuing question
+
+
+WITH CTE_Totalsales AS
+(
+SELECT
+	customerid,
+	SUM(sales) AS total_sales
+FROM
+sales.orders
+GROUP BY customerid
+)
+--Step 2 : Find the last order of each customer (Standalone CTE)
+,CTE_Lastorder AS
+(
+SELECT 
+	customerid,
+	MAX(orderdate) AS last_order
+FROM sales.orders
+GROUP BY customerid
+)
+--Step 3: Rank the customer based on their total sales per customer  (Nested CTE)
+, CTE_Rank AS (
+SELECT
+customerid,
+total_sales,
+RANK() OVER (ORDER BY total_sales DESC) AS rnk
+FROM CTE_Totalsales
+)
+
+--Step 4 : Segment the customer based on total sale (Nested CTE)
+, CTE_Segment AS
+(
+SELECT
+	customerid,
+	total_sales,
+	CASE WHEN total_sales > 100 THEN 'High'
+		 WHEN total_sales > 80 THEN 'Medium'
+		ELSE 'Low'
+	END Segment
+FROM
+	CTE_Totalsales
+)
+--SELECT * FROM CTE_Segment
+
+---Main Query---
+
+SELECT
+	c.customerid,
+	c.firstname,
+	c.lastname,
+	cte.total_sales,
+	clo.last_order,
+	cr.rnk,
+	cs.Segment
+FROM
+sales.customers c
+LEFT JOIN CTE_Totalsales cte
+ON c.customerid = cte.customerid 
+LEFT JOIN CTE_Lastorder clo
+ON clo.customerid = c.customerid
+LEFT JOIN CTE_Rank cr
+ON cr.customerid = c.customerid
+LEFT JOIN CTE_Segment cs
+ON cs.customerid = c.customerid;
+
+
+----Recursive CTE---
+
+
+--Generate a squence from 1 to 20 15:15
+--Anchor query
+
+WITH RECURSIVE CTE_Series AS (
+SELECT 1 AS mynumber
+
+UNION ALL
+---RECURSIVE query--
+SELECT 
+	mynumber + 1
+FROM CTE_Series
+WHERE mynumber < 1000
+)
+--Main Query
+SELECT * FROM CTE_Series;
+--OPTION(MAXRECURSION 5000) NOT WORKING FOR POSTGRESQL , WORKS FOR sql SERVER
+
+
+--Task : Show the employee hierarchy by displaying  each employee's level  within organization
+WITH RECURSIVE CTE_Hier AS
+(
+SELECT 
+	employeeid,
+	firstname,
+	managerid,
+1 AS level
+FROM sales.employees
+WHERE managerid IS NULL
+UNION ALL
+SELECT 
+	e.employeeid,
+	e.firstname,
+	e.managerid,
+	level +1
+FROM sales.employees e
+INNER JOIN CTE_Hier ch
+ON e.managerid = ch.employeeid
+)
+SELECT * FROM CTE_Hier;
+
+
+
+-----VIEWS----
+--View is a virtual table based on the result set of a query without storing data in DB
+
+
+---Find the running to total sales for each month
+WITH CTE_Summary AS (
+	SELECT
+		EXTRACT(month FROM orderdate) AS month_date,
+		SUM(sales) AS totalsales
+	FROM
+	sales.orders
+	GROUP BY EXTRACT(month FROM orderdate)
+)
+SELECT 
+	month_date,
+	totalsales,
+	SUM(totalsales) OVER(ORDER BY month_date ) AS runningtotals
+FROM
+CTE_Summary;
+
+
+---FOR VIEWS 
+WITH CTE_Summary AS (
+	SELECT
+		EXTRACT(month FROM orderdate) AS month_date,
+		SUM(sales) AS totalsales,
+		COUNT(orderid) AS totalorders,
+		SUM(quantity) AS totalquantity
+	FROM
+	sales.orders
+	GROUP BY EXTRACT(month FROM orderdate)
+)
+SELECT 
+	month_date,
+	totalsales,
+	SUM(totalsales) OVER(ORDER BY month_date ) AS runningtotals
+FROM
+CTE_Summary
+
+------VIEW ----DDL----
+CREATE VIEW V_Monthly_Summary AS (
+SELECT
+		EXTRACT(month FROM orderdate) AS month_date,
+		SUM(sales) AS totalsales,
+		COUNT(orderid) AS totalorders,
+		SUM(quantity) AS totalquantity
+	FROM
+	sales.orders
+	GROUP BY EXTRACT(month FROM orderdate)
+)
+
+SELECT * FROM V_Monthly_Summary
+
+
+
+SELECT 
+	month_date,
+	totalsales,
+	SUM(totalsales) OVER(ORDER BY month_date ) AS runningtotals
+FROM
+V_Monthly_Summary
+
+---TO CHANGE THE SCHEMA -- DEFAULT IS DBO
+CREATE VIEW sales.V_Monthly_Summary AS (
+SELECT
+		EXTRACT(month FROM orderdate) AS month_date,
+		SUM(sales) AS totalsales,
+		COUNT(orderid) AS totalorders,
+		SUM(quantity) AS totalquantity
+	FROM
+	sales.orders
+	GROUP BY EXTRACT(month FROM orderdate)
+);
+
+
+DROP VIEW sales.V_Monthly_Summary;
+
+
+CREATE OR REPLACE VIEW sales.V_Monthly_Summary AS (
+SELECT
+		EXTRACT(month FROM orderdate) AS month_date,
+		SUM(sales) AS totalsales,
+		COUNT(orderid) AS totalorders,
+		SUM(quantity) AS totalquantity
+	FROM
+	sales.orders
+	GROUP BY EXTRACT(month FROM orderdate)
+);
+
+--to check the VIEW if existed TSQL
+IF OBJECT_ID ('sales.V_Monthly_Summary' ,'v') IS NOT NULL
+	DROP VIEW('sales.V_Monthly_Summary'):
+GO
+
+-------------------
+---Task: Provide  view that combines order, product, customer and emoployee
+CREATE VIEW sales.V_Order_details AS 
+(
+SELECT 
+	o.orderid,
+	o.orderdate,
+	p.product,
+	p.category,
+	CONCAT(c.firstname,' ' , c.lastname) AS customername,
+	c.country,
+	CONCAT(s.firstname,' ' , s.lastname) AS salesname,
+	s.department,
+	o.sales,
+	o.quantity
+FROM sales.orders o
+LEFT JOIN sales.products p
+ON p.productid = o.productid
+LEFT JOIN sales.customers c
+ON c.customerid = o.customerid
+LEFT JOIN sales.employees s
+ON s.employeeid = o.salespersonid
+)
+
+SELECT * FROM sales.V_Order_details
+
+
+
+
+---VIEWS ---ROW LEVEL SECURITY---
+--Provide a view  for EU sales team that combines details from all tables and exclude data related to USA
+CREATE VIEW sales.V_EU_Order_details AS 
+(
+SELECT 
+	o.orderid,
+	o.orderdate,
+	p.product,
+	p.category,
+	CONCAT(c.firstname,' ' , c.lastname) AS customername,
+	c.country,
+	CONCAT(s.firstname,' ' , s.lastname) AS salesname,
+	s.department,
+	o.sales,
+	o.quantity
+FROM sales.orders o
+LEFT JOIN sales.products p
+ON p.productid = o.productid
+LEFT JOIN sales.customers c
+ON c.customerid = o.customerid
+LEFT JOIN sales.employees s
+ON s.employeeid = o.salespersonid
+WHERE c.country != 'USA'
+)
+SELECT * FROM sales.V_EU_Order_details
+--Your Task:
+-- 👉 For each order_date, calculate:
+--• Total number of orders (daily)
+--• A 7-day rolling average of daily orders (including current day
+
+
+WITH order_count AS 
+(
+	SELECT orderdate , 
+	COUNT(orderdate)  AS total_order
+FROM sales.orders
+GROUP BY orderdate
+)
+SELECT 
+	a.orderdate,
+	a. total_order as daily_order,
+	CAST (ROUND (SUMb. total_order) * 1.0 / COUNT(a.orderdate), 2) AS DECIMAL (10, 2)) as cumm_7d_avg
+FROM sales.orders a
+LEFT JOIN order_count b 
+ON a order_date BETWEEN b.order_date AND DATEADD(DAY, 6, b. order_date)
+GROUP BY a order_date, a. total_order
+
+
+
+
+-----16:36 --CTAS --- CREATE TABLE AS SELECT
+
+CREATE TABLE sales.Monthlyorder AS
+(
+	SELECT 
+	TO_CHAR(orderdate, 'Month') AS monthname,
+	COUNT(orderid) AS Total_order
+	FROM sales.orders
+	GROUP BY TO_CHAR(orderdate, 'Month')
+);
+
+SELECT * FROM sales.Monthlyorder;
+
+DROP TABLE sales.Monthlyorder;
+
+---To keep on updating the CTAS table with recent data use TSQL
+
+/*IF OBJECT_ID('sales.Monthlyorder' ,'U') IS NOT NULL
+DROP TABLE sales.Monthlyorder
+GO*/ ---only for SQL server else use DROP
+
+DROP TABLE IF EXISTS sales.Monthlyorder;
+CREATE TABLE sales.Monthlyorder AS
+(
+	SELECT 
+	--TO_CHAR(orderdate, 'Month') AS monthname,
+	TRIM(TO_CHAR(orderdate, 'Month')) AS monthname1,
+	COUNT(orderid) AS Total_order
+	FROM sales.orders
+	GROUP BY TRIM(TO_CHAR(orderdate, 'Month'))
+);
+
+---tEMP table
+/*SELECT * 
+INSERT INTO #sales.orders
+FROM sales.orders*/ -- SQL SERVER
+
+
+CREATE TEMP TABLE temp_orders AS
+SELECT * FROM sales.orders;
+
+SELECT * FROM temp_orders;
+
+DELETE FROM sales.temp_orders
+WHERE ORDERSTATUS = 'Delivered';
+
+--Now to store the result of above query
+
+CREATE TABLE sales.temp_orders AS
+(
+SELECT * FROM temp_orders
+);
+
+SELECT * FROM sales.temp_orders;
+
+
+----Stored Procedure---
+SELECT
+	COUNT(*) TotalCustomer,
+	AVG(score) Avgscore
+FROM sales.customers
+WHERE country = 'USA'
+
+/*
+--Turning the query into Stored Procedures
+CREATE PROCEDURE GetCustomerSummary AS
+BEGIN
+	SELECT
+		COUNT(*) TotalCustomer,
+		AVG(score) Avgscore
+	FROM sales.customers
+	WHERE country = 'USA'
+END
+---Step 3 Execute SP
+EXEC GetCustomerSummary */
+
+CREATE OR REPLACE FUNCTION get_customer_summary()
+RETURNS TABLE (
+  total_customer INTEGER,
+  avg_score NUMERIC
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    COUNT(*) AS total_customer,
+    AVG(score) AS avg_score
+  FROM sales.customers
+  WHERE country = 'USA';
+END;
+$$;
+
+SELECT * FROM get_customer_summary();
+
+--There are more about Stored procedure check in video--
+
+---TRIGGER---
+CREATE TABLE sales.log(
+logid INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+employeeid INT,
+logmessage VARCHAR(55),
+logdate DATE
+);
+
+
+---sYNTAX IN sql server
+CREATE TRIGGER trg_AfterInsertemp ON sales.employees
+AFTER INSERT
+AS
+BEGIN
+	INSERT INTO sales.log(employeeid, logmessage,logdate)
+		SELECT employeeid
+		'New Employee Added =' + CAST(employeeid AS VARCHAR),
+		GETDATE()
+		FROM INSERTED
+END;
+
+SELECT * FROM sales.log
+
+INSERT INTO sales.employees VALUES 
+(6, 'Maria' , 'Loe' ,'HR', '1980-01-12','F' , 800000, 3 )
+
+;
+CREATE OR REPLACE FUNCTION trg_after_insert_emp()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO sales.log (employeeid, logmessage, logdate)
+    VALUES (
+        NEW.employeeid,
+        'New Employee Added = ' || NEW.employeeid,
+        CURRENT_DATE
+    );
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER trg_after_insert_emp
+AFTER INSERT ON sales.employees
+FOR EACH ROW
+EXECUTE FUNCTION trg_after_insert_emp();
+
+
+--------Indexes --- Optimization
+---Data Structure provides quick access to data , optimizing the speed of the query	
+SELECT *
+INSERT INTO sales.dbcust
+FROM sales.customers
+
+
+CREATE TABLE sales.dbcust AS
+SELECT * FROM sales.customers
+WITH NO DATA;
+
+INSERT INTO sales.dbcust
+SELECT * FROM sales.customers;
+
+
+SELECT * FROM sales.dbcust
+
+CREATE INDEX idx_dbcust_customerid 
+ON sales.dbcust(customerid)
+
+CREATE INDEX idx_dbcust_firstname 
+ON sales.dbcust(firstname)
+
+DROP INDEX idx_dbcust_firstname ON sales.dbcust
+DROP INDEX IF EXISTS idx_dbcust_firstname;
