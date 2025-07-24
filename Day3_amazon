@@ -1,0 +1,161 @@
+/*Identify customers who made purchases on exactly three different days in the
+last month.*/
+WITH CTE_purchase_summary AS (
+SELECT 
+  customer_id, 
+  COUNT(DISTINCT order_date) AS purchased_date
+FROM public.orders
+WHERE order_date >= CURRENT_DATE - INTERVAL '1 month'
+GROUP BY customer_id
+
+)
+SELECT customer_id FROM CTE_purchase_summary
+WHERE purchased_date = 3
+
+
+CREATE TABLE public.orders2 (
+    order_id INT PRIMARY KEY,
+    customer_id INT,
+    order_date DATE
+);
+
+INSERT INTO public.orders2 (order_id, customer_id, order_date) VALUES
+-- Customer 1: 3 dates ✅
+(1001, 1, '2025-07-01'),
+(1002, 1, '2025-07-10'),
+(1003, 1, '2025-07-15'),
+
+-- Customer 2: 2 dates 🚫
+(1004, 2, '2025-07-05'),
+(1005, 2, '2025-07-15'),
+
+-- Customer 3: 3 dates ✅
+(1006, 3, '2025-06-25'),
+(1007, 3, '2025-07-05'),
+(1008, 3, '2025-07-20'),
+
+-- Customer 4: 1 date 🚫
+(1009, 4, '2025-07-01'),
+
+-- Customer 5: 4 dates 🚫
+(1010, 5, '2025-06-26'),
+(1011, 5, '2025-07-01'),
+(1012, 5, '2025-07-10'),
+(1013, 5, '2025-07-15'),
+
+-- Customer 6: 3 purchases on same day 🚫 (1 distinct date)
+(1014, 6, '2025-07-12'),
+(1015, 6, '2025-07-12'),
+(1016, 6, '2025-07-12'),
+
+-- Customer 7: 3 dates, but 1 is outside last month 🚫
+(1017, 7, '2025-06-20'),  -- too early
+(1018, 7, '2025-06-26'),
+(1019, 7, '2025-07-03');
+
+WITH CTE_purchase_summary AS (
+  SELECT 
+    customer_id, 
+    COUNT(DISTINCT order_date) AS purchased_date
+  FROM public.orders
+  WHERE order_date >= DATE '2025-07-24' - INTERVAL '1 month'
+  GROUP BY customer_id
+)
+SELECT customer_id 
+FROM CTE_purchase_summary
+WHERE purchased_date = 3;
+
+SELECT * FROM public.orders WHERE order_date >= CURRENT_DATE - INTERVAL '1 month';
+SELECT * FROM public.orders;
+SELECT * 
+FROM public.orders
+WHERE order_date >= CURRENT_DATE - INTERVAL '1 month';
+
+
+SELECT CURRENT_DATE;
+
+
+DELETE FROM public.orders;
+
+INSERT INTO public.orders (order_id, customer_id, order_date) VALUES
+-- Customer 1 (✅ 3 dates)
+(1001, 1, '2025-07-01'),
+(1002, 1, '2025-07-10'),
+(1003, 1, '2025-07-15'),
+
+-- Customer 3 (✅ 3 dates)
+(1006, 3, '2025-06-25'),
+(1007, 3, '2025-07-05'),
+(1008, 3, '2025-07-20'),
+
+-- Other data (not matching)
+(1004, 2, '2025-07-05'),
+(1005, 2, '2025-07-15'),
+(1009, 4, '2025-07-01'),
+(1010, 5, '2025-06-26');
+
+
+WITH CTE_purchase_summary AS (
+  SELECT 
+    customer_id, 
+    COUNT(DISTINCT order_date) AS purchased_date
+  FROM public.orders
+  WHERE order_date >= CURRENT_DATE - INTERVAL '1 month'
+  GROUP BY customer_id
+)
+SELECT customer_id
+FROM CTE_purchase_summary
+WHERE purchased_date = 3;
+
+
+SELECT * FROM public.orders WHERE order_date >= CURRENT_DATE - INTERVAL '1 month';
+
+--Find the top 2 highest-selling products for each category.
+
+--Tables: sales (product_id, sale_amount), products (product _id, category)
+SELECT * FROM public.sales
+SELECT * FROM public.products
+
+WITH CTE AS (
+SELECT p.product_id,
+p.category,
+SUM(s.sale_amount) AS Total_sales,
+RANK() OVER (PARTITION BY p.category ORDER BY SUM(s.sale_amount) DESC) AS rnk
+FROM public.sales s
+JOIN public.products p
+ON s.product_id = p.product_id
+GROUP BY p.product_id
+)
+SELECT * FROM CTE
+WHERE rnk <=2
+
+
+/*
+Q3: Detect anomalies where sales for a product are 50% lower than the average for
+that product.
+Tables: sales (product_id, sale amount) */
+WITH prod_stat AS (
+
+	SELECT 
+		product_id ,
+		AVG(sale_amount) AS avg_sales
+	FROM sales 
+	GROUP BY product_id
+
+)
+
+SELECT s.product_id, s.sale_amount
+FROM sales s
+JOIN prod_stat p
+ON s.product_id = p.product_id
+WHERE s.sale_amount < 0.5 * p.avg_sales
+
+/*Q9: Identify products that have been sold but have no record in the products table
+and also calculate how many times each missing product has been sold.
+Tables: sales (product_id), products (product_id)*/
+SELECT s.product_id, s.sale_amount
+FROM sales s
+LEFT JOIN products p
+ON s.product_id = p.product_id
+WHERE p.product_id IS NULL
+GROUP BY s.product_id
