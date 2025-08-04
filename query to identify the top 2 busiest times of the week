@@ -1,0 +1,42 @@
+This Interview question and solution from Dataford, will help you understand how DENSE_RANK works
+
+Write a query to identify the top 2 busiest times of the week for the company based on the criteria provided:
+Morning: Before 12 a.m. (not inclusive)
+Early afternoon: 12 p.m. - 3 p.m. (inclusive)
+Late afternoon: after 3 p.m.
+Your output should include the day and time of day combination for the 2 busiest times, along with the number of orders. 
+The day should be displayed in text format (e.g. Monday instead of 1). In the event of a tie in ranking, all results should be displayed.
+
+
+-- Step 1: Create a CTE to analyze order activity by day and time segment
+WITH my_orders AS (
+  SELECT
+    -- Extracts the name of the day from the timestamp (e.g 'Monday', 'Wednesday')
+    TO_CHAR(DATE_TRUNC('day', timestamp), 'Day') AS day,
+
+    -- Categorize the time of the order into parts of the day
+    CASE
+      WHEN CAST(timestamp AS TIME) < '12:00:00' THEN 'Morning'
+      WHEN CAST(timestamp AS TIME) BETWEEN '12:00:00' AND '15:00:00' THEN 'Early afternoon'
+      ELSE 'Late afternoon'
+    END AS time_of_day,
+
+    -- Counts the number of unique orders in each day/time segment
+    COUNT(DISTINCT order_id) AS num_orders,
+
+    -- Ranks each day/time segment by number of orders (highest = rank 1)
+    DENSE_RANK() OVER(
+      ORDER BY COUNT(DISTINCT order_id) DESC
+    ) AS rnk
+
+  FROM sales_log
+  GROUP BY 1, 2  -- Group by day and time_of_day
+)
+
+-- Step 2: Select the top 2 day/time combinations with the highest number of orders
+SELECT
+  day,
+  time_of_day,
+  num_orders
+FROM my_orders
+WHERE rnk <= 2;
